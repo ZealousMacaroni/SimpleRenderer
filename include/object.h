@@ -8,12 +8,15 @@
 #include <shader.h>
 #include <glm/glm.hpp>
 #include <GL/glew.h>
+#include <iostream>
 
 /**
  * @brief Stores all data needed for rendering.
  * @todo Implement a system of static vs dynamic memory for GPU.
  * @todo Figure out a better way to store shaders. Maybe a pointer.
  * @todo Overload CreateVAO to support vectors and maybe even more data types.
+ * @todo Add some way to make sure there is shader data. A non-issue for now.
+ * @warning ShaderInstance must be created manually.
  */ 
 struct ObjectInstance {
 	/**
@@ -53,6 +56,21 @@ struct ObjectInstance {
 		glDeleteBuffers(1, &VBO);
 		glDeleteBuffers(1, &IBO);
 		
+		// Confirming the object has data.
+		HasData = true;
+		
+	}
+	
+	/**
+	 * @brief Function which deletes all OpenGL data associated with the program.
+	 */
+	void Terminate() {
+		if(!HasData) {
+			std::cout << "Error: ObjectInstance: Terminate(): Data has not been created.\n";
+			return;
+		}
+		glDeleteVertexArrays(1, &VAO);
+		Shader.Terminate();
 	}
 	
 	unsigned int VAO;			// Unsigned int storing the Vertex Array Object ID.
