@@ -9,6 +9,48 @@
 #include <glm/glm.hpp>
 #include <GL/glew.h>
 #include <iostream>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+/**
+ * @brief Stores data such as position and rotation for positioning within the world.
+ */
+struct WorldDataInstance {
+	WorldDataInstance() {}				// Deafult constructor
+	/**
+	 * @brief Constructor which simply initializes data.
+	 * @param _Scale vec3 representing the size of the object for each axis.
+	 * @param _Rotation vec3 representing the rotation of the object for each axis, in degrees.
+	 * @param _Position vec3 representing the position of the object in the world.
+	 */
+	WorldDataInstance(glm::vec3 _Scale, glm::vec3 _Rotation, glm::vec3 _Position) {}
+	
+	glm::vec3 Scale;			// vec3 representing the size of the object for each axis.
+	glm::vec3 Rotation;			// vec3 representing the rotation of the object for each axis, in degrees.
+	glm::vec3 Position;			// vec3 representing the position of the object in the world.
+	glm::mat4 Model = glm::mat4(1.0f);	// Model Matrix
+	
+	/**
+	 * @brief Calculates the model matrix from vec3s Rotation, Position, and Scale.
+	 * @todo Add some sort of checking to make sure the object doesn't use empty vec3s.
+	 */
+	void GenerateMatrix() {
+		// Scaling the model
+		Model = glm::scale(Model, Scale);
+		
+		// Rotating the model
+		// Loop for ease of use
+		glm::vec3 Axis = glm::vec3(0.0f, 0.0f, 0.0f);
+		for(int i = 0; i < 3; i++) {
+			Axis[i] = 1.0f;
+			Model = glm::rotate(Model, glm::radians(Rotation[i]), Axis);
+			Axis[i] = 0.0f;
+		}
+		
+		// Translating the model
+		Model = glm::translate(Model, Position);
+	}
+};
 
 /**
  * @brief Stores all data needed for rendering.
@@ -77,4 +119,6 @@ struct ObjectInstance {
 	int IndicesCount;  			// Unsigned int storing the number of indices for the object.
 	ShaderInstance Shader;		// ShaderInstance storing the shader to be used on the object.
 	bool HasData = false;		// Bool storing whether or not the object has had its data created.
+	WorldDataInstance WorldData;
+	
 };
