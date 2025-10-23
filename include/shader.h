@@ -35,7 +35,7 @@ std::string GetContentFromFile(std::string Path) {
 
 /**
  * @brief A simple class which handles shader creation and use w/uniforms. 
- *
+ * @todo Add a method which allows for checking to make sure that the data is in the shader.
  */
 class ShaderInstance {
 public:
