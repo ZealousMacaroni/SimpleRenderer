@@ -14,27 +14,52 @@
 
 /**
  * @brief Stores data such as position and rotation for positioning within the world.
+ * @class WorldDataInstance
  */
-struct WorldDataInstance {
-	WorldDataInstance() {}				// Deafult constructor
+class WorldDataInstance {
+public:
+	WorldDataInstance() {} 		// Default constructor
+	
 	/**
-	 * @brief Constructor which simply initializes data.
+	 * @brief Constructor which initializes data.
+	 * @param _Scale vec3 representing the size of the object for each axis.
+	 * @param _Rotation vec3 representing the rotation of the object for each axis, in degrees.
+	 * @param _Position vec3 representing the position of the object in the world.
+	 * @note The function simply calls SetData.
+	 * @see SetData()
+	 */
+	WorldDataInstance(glm::vec3 _Scale, glm::vec3 _Rotation, glm::vec3 _Position) {
+		SetData(_Scale, _Rotation, _Position);
+		
+	}
+	 
+	/**
+	 * @brief Method which initializes data.
 	 * @param _Scale vec3 representing the size of the object for each axis.
 	 * @param _Rotation vec3 representing the rotation of the object for each axis, in degrees.
 	 * @param _Position vec3 representing the position of the object in the world.
 	 */
-	WorldDataInstance(glm::vec3 _Scale, glm::vec3 _Rotation, glm::vec3 _Position) {}
-	
-	glm::vec3 Scale;			// vec3 representing the size of the object for each axis.
-	glm::vec3 Rotation;			// vec3 representing the rotation of the object for each axis, in degrees.
-	glm::vec3 Position;			// vec3 representing the position of the object in the world.
-	glm::mat4 Model = glm::mat4(1.0f);	// Model Matrix
+	void SetData(glm::vec3 _Scale, glm::vec3 _Rotation, glm::vec3 _Position) {
+		// Setting data
+		Scale = _Scale;
+		Rotation = _Rotation;
+		Position = _Position;
+		
+		// Setting guard to true
+		HasVectorData = true;
+		
+	}
 	
 	/**
 	 * @brief Calculates the model matrix from vec3s Rotation, Position, and Scale.
-	 * @todo Add some sort of checking to make sure the object doesn't use empty vec3s.
 	 */
 	void GenerateMatrix() {
+		// Checking if vector data is present
+		if(!HasVectorData) {
+			std::cout << "Error: WorldDataInstance: GenerateMatrix(): No vector data present.\n";
+			return;
+		}
+		
 		// Scaling the model
 		Model = glm::scale(Model, Scale);
 		
@@ -49,7 +74,35 @@ struct WorldDataInstance {
 		
 		// Translating the model
 		Model = glm::translate(Model, Position);
+		
 	}
+	
+	/**
+	 * @brief Function which gets the model matrix.
+	 * @return Returns a const float pointer to the floats of the matrix. Column major order.
+	 * @warning Modifying the data in the pointer can result in undefined behavior with GLM.
+	 * @warning If the model matrix has not been made, a nullptr is returned.
+	 */
+	const float* GetModelMatrix() {
+		// Checking guard
+		if(!HasModelMatrix) {
+			std::cout << "Error: WorldDataInstance: GetModelMatrix(): Model matrix has not been created.";
+			return nullptr;
+		}
+		
+		// Returning
+		return glm::value_ptr(Model);
+		
+	}
+	
+private:
+	glm::vec3 Scale;			// vec3 representing the size of the object for each axis.
+	glm::vec3 Rotation;			// vec3 representing the rotation of the object for each axis, in degrees.
+	glm::vec3 Position;			// vec3 representing the position of the object in the world.
+	glm::mat4 Model = glm::mat4(1.0f);	// Model Matrix
+	bool HasVectorData = false;	// Bool guard representing whether or not the vectors have been initialized yet.
+	bool HasModelMatrix = false;// Bool guard representing whether or not the model matrix has been made.
+	
 };
 
 /**
@@ -125,6 +178,7 @@ public:
 		}
 		glDeleteVertexArrays(1, &VAO);
 		Shader.Terminate();
+		
 	}
 	
 private:
