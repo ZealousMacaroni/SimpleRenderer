@@ -13,8 +13,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 /**
- * @brief Stores data such as position and rotation for positioning within the world.
  * @class WorldDataInstance
+ * @brief Stores data such as position and rotation for positioning within the world.
  */
 class WorldDataInstance {
 public:
@@ -109,10 +109,7 @@ private:
  * @class ObjectInstance
  * @brief Stores all data needed for rendering.
  * @todo Implement a system of static vs dynamic memory for GPU.
- * @todo Figure out a better way to store shaders. Maybe a pointer.
  * @todo Overload CreateVAO to support vectors and maybe even more data types.
- * @todo Add some way to make sure there is data, a non issue for now.
- * @todo Make sure that there is data present in both the ShaderInstance and WorldDataInstance before rendering.
  * @warning ShaderInstance must be created manually.
  */ 
 class ObjectInstance {
@@ -124,7 +121,12 @@ public:
 	 * @param _Shader The pointer to the shader which is inspected to be constructed to be used to render the object.
 	 * @param _WorldData The data of the particular object that is used to position it in the world.
 	 */
-	ObjectInstance(ShaderInstance* _Shader, WorldDataInstance _WorldData) : WorldData(_WorldData), Shader(_Shader) {}
+	ObjectInstance(ShaderInstance* _Shader, WorldDataInstance _WorldData) : WorldData(_WorldData), Shader(_Shader) {
+		// Setting guards to true
+		HasShader = true;
+		HasWorldData = true;
+	
+	}
 	
 	/**
 	 * @brief Method that creates the VAO and initiates IndicesCount through regular arrays.
@@ -163,8 +165,56 @@ public:
 		glDeleteBuffers(1, &VBO);
 		glDeleteBuffers(1, &IBO);
 		
-		// Confirming the object has data.
-		HasData = true;
+		// Setting the guard to true.
+		HasVertexData = true;
+		
+	}
+	
+	/**
+	 * @brief Function which uses the VAO.
+	 * @warning if CreateVAO has not been called, this function will not do anything and will print an error.
+	 */
+	void UseVAO() {
+		// Guard checking
+		if(!HasVertexData) {
+			std::cout << "Error: ObjectInstance: UseVAO(): VAO is not present.\n";
+			return;
+		}
+		
+		// Using VAO
+		glBindVertexArray(VAO);
+		
+	}
+	
+	/**
+	 * @brief Function which uses the Shader.
+	 * @warning If the Shader has not been initialized or created, errors will be printed.
+	 */
+	void UseShader() {
+		// Guard checking
+		if(!HasShader) {
+			std::cout << "Error: ObjectInstance: UseShader(): Shader is not present.\n";
+			return;
+		}
+		
+		// Using shader
+		Shader->UseProgram();
+		
+	}
+	
+	/**
+	 * @brief Function which gets the model matrix.
+	 * @return Returns a const float pointer to the matrix in column major order.
+	 * @warning Returns a nullptr if the class does not have any world data or vectors have not been created.
+	 */
+	const float* GetModelMatrix() {
+		// Guard checking
+		if(!HasWorldData) {
+			std::cout << "Error: ObjectInstance: GetModelMatrix: WorldData is not present.\n";
+		}
+		
+		// Returning
+		return WorldData.GetModelMatrix();
 		
 	}
 	
@@ -172,12 +222,15 @@ public:
 	 * @brief Function which deletes all OpenGL data associated with the program.
 	 */
 	void Terminate() {
-		if(!HasData) {
-			std::cout << "Error: ObjectInstance: Terminate(): Data has not been created.\n";
+		// Guard checking
+		if(!HasVertexData || !HasShader) {
+			std::cout << "Error: ObjectInstance: Terminate(): VAO or Shader is not present.\n";
 			return;
 		}
+		
+		// Deleting data
 		glDeleteVertexArrays(1, &VAO);
-		Shader.Terminate();
+		Shader->Terminate();
 		
 	}
 	
@@ -186,5 +239,8 @@ private:
 	int IndicesCount;  			// Unsigned int storing the number of indices for the object.
 	ShaderInstance* Shader;		// ShaderInstance pointer storing the address of the shader to be used on the object.
 	WorldDataInstance WorldData;	// Struct storing all of the data for the model matrix and the matrix itself.
+	bool HasShader = false;		// Bool guard determining whether or not the class has a shader.
+	bool HasWorldData = false;	// Bool guard determining whether or not the class has WorldData.
+	bool HasVertexData = false;	// Bool guard determining whether or not the VAO and IndicesCount have been created/initialized.
 	
 };
