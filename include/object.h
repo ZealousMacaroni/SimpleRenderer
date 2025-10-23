@@ -53,14 +53,26 @@ struct WorldDataInstance {
 };
 
 /**
+ * @class ObjectInstance
  * @brief Stores all data needed for rendering.
  * @todo Implement a system of static vs dynamic memory for GPU.
  * @todo Figure out a better way to store shaders. Maybe a pointer.
  * @todo Overload CreateVAO to support vectors and maybe even more data types.
- * @todo Add some way to make sure there is shader data. A non-issue for now.
+ * @todo Add some way to make sure there is data, a non issue for now.
+ * @todo Make sure that there is data present in both the ShaderInstance and WorldDataInstance before rendering.
  * @warning ShaderInstance must be created manually.
  */ 
-struct ObjectInstance {
+class ObjectInstance {
+public:
+	ObjectInstance() {}			// Default constructor
+	
+	/**
+	 * @brief Constructor that loads the shader and world data.
+	 * @param _Shader The pointer to the shader which is inspected to be constructed to be used to render the object.
+	 * @param _WorldData The data of the particular object that is used to position it in the world.
+	 */
+	ObjectInstance(ShaderInstance* _Shader, WorldDataInstance _WorldData) : WorldData(_WorldData), Shader(_Shader) {}
+	
 	/**
 	 * @brief Method that creates the VAO and initiates IndicesCount through regular arrays.
 	 * @param VerticesPointer Pointer to the vertices. Expects vertices to be composed of glm::vec3s.
@@ -115,10 +127,10 @@ struct ObjectInstance {
 		Shader.Terminate();
 	}
 	
+private:
 	unsigned int VAO;			// Unsigned int storing the Vertex Array Object ID.
 	int IndicesCount;  			// Unsigned int storing the number of indices for the object.
-	ShaderInstance Shader;		// ShaderInstance storing the shader to be used on the object.
-	bool HasData = false;		// Bool storing whether or not the object has had its data created.
-	WorldDataInstance WorldData;
+	ShaderInstance* Shader;		// ShaderInstance pointer storing the address of the shader to be used on the object.
+	WorldDataInstance WorldData;	// Struct storing all of the data for the model matrix and the matrix itself.
 	
 };
