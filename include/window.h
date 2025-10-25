@@ -4,6 +4,7 @@
  */
 
 #pragma once
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "string"
 
@@ -43,7 +44,7 @@ public:
 	 * @brief A constructor which creates a window and initializes the GLFW context.
 	 * @param Parameters A WindowInstanceParameters which contains all data for the window.
 	 */
-	WindowInstance(WindowInstanceParameters Parameters) : Data(Parameters) {
+	WindowInstance(WindowInstanceParameters& Parameters) : Data(Parameters) {
 		// Prepping window creation
 		glfwInit();
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, Data.VersionMajor);
@@ -54,18 +55,42 @@ public:
 		// Creating window
 		Window = glfwCreateWindow(Data.Width, Data.Height, Data.Title, NULL, NULL);
 		
+		// Checking for failure
+		if(!Window) {
+			std::cout << "Error: WindowInstance: Constructor: Window creation failed.\n";
+			return;
+			
+		}
+		
+		// Incrementing the count of windows
+		WindowCount++;
+		
 		// Doing context
 		glfwMakeContextCurrent(Window);
+		
+		// Initialzing glew
+		if(glewInit() != GLEW_OK) {
+			std::cout << "Error: WindowInstance: Constructor: GLEW init failed.\n";
+			return;
+			
+		}
 		
 	}
 	
 	/**
 	 * @brief A function which registers the cursor position callback.
-	 * @param The function to use as the callback.
+	 * @param Callback The function to use as the callback.
 	 * @note The callback function takes in a GLFWwindow*, a double representing the x position of the cursor, and a double representing the y position.
 	 */
 	void SetCursorPositionCallback(GLFWcursorposfun Callback) {
+		// Checking
+		if(!Window) {
+			return;
+		}
+		
+		// Setting callback
 		glfwSetCursorPosCallback(Window, Callback);
+		
 	}
 	
 	/**
@@ -73,6 +98,12 @@ public:
 	 * @returns Returns a boolean of or not the window should close.
 	 */
 	bool ShouldWindowClose() {
+		// Closing the window if it doesnt exist.
+		if(!Window) {
+			return true;
+		}
+		
+		// Returning whether the window should close
 		return glfwWindowShouldClose(Window);
 		
 	}
@@ -81,6 +112,13 @@ public:
 	 * @brief A function which finishes off rendering the frame by polling events and swapping buffers.
 	 */
 	void FinishFrame() {
+		// Returning if the window doesnt exist.
+		if(!Window) {
+			return;
+			
+		}
+		
+		// Doing end frame stuff
 		glfwPollEvents();
 		glfwSwapBuffers(Window);
 		
@@ -89,14 +127,25 @@ public:
 	/**
 	 * @brief A function which terminates GLFW.
 	 */
-	void Terminate() {
-		glfwTerminate();
+	~WindowInstance() {
+		// Checking if the window exists before doing stuff
+		if(Window) {
+			// Destroys the window.
+			glfwDestroyWindow(Window);
+		
+			// If it is the last window, also terminate GLFW
+			if(WindowCount == 1) {
+				glfwTerminate();
+				
+			}
+		
+		}
 		
 	}
 								
 private:
 	GLFWwindow* Window;			// The pointer to the window.
 	WindowInstanceParameters Data;	// The data for this window instance.
-	bool ParametersInit = false;	// Bool guard determining whether or not the parameters have been loaded.
-
+	static int WindowCount;		// The count of windows across all instances of Windows.
+	
 };
