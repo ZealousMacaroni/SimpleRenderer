@@ -5,9 +5,10 @@
 
 #pragma once
 
-#include "string.h"
+#include <string>
 #include <fstream>
 #include <GL/glew.h>
+#include <iostream>
 
 /**
  * @brief A simple function which reads a file.
@@ -19,6 +20,11 @@
 std::string GetContentFromFile(std::string Path) {
 	// Creating file
 	std::ifstream File(Path);
+	
+	if(!File.is_open()) {
+		std::cout << "Error: GetContentFromFile: " << Path << " file does not exist.\n";
+		return "";
+	}
 	
 	// Strings for use later
 	std::string Line, Source;
@@ -87,8 +93,17 @@ public:
 		ID = glCreateProgram();
 		glAttachShader(ID, VertexShader);
 		glAttachShader(ID, FragmentShader);
+		
+		// Linking program
 		glLinkProgram(ID);
-		glValidateProgram(ID);
+		
+		// Error checking
+		glGetProgramiv(ID, GL_LINK_STATUS, &Success);
+		if (!Success) {
+			char InfoLog[512];
+			glGetProgramInfoLog(ID, 512, NULL, InfoLog);
+			std::cout << "Error: ShaderInstance: Shader program linking failed. Info Log: " << InfoLog << "\n";
+		}
 		
 		// Deleting shader
 		glDeleteShader(VertexShader);
@@ -113,12 +128,16 @@ public:
 	/** 
 	 * @brief Function which deletes the shader program.
 	 */
-	void Terminate() {
+	~ShaderInstance() {
+		// Guard checking
 		if(!ProgramCreated) {
 			std::cout << "Error: ShaderInstance: Terminate(): Program has not been created.\n";
 			return;
 		}
+		
+		// Deleting program
 		glDeleteProgram(ID);
+		
 	}
 	
 private:

@@ -6,7 +6,6 @@
 #pragma once
 
 #include <shader.h>
-#include <glm/glm.hpp>
 #include <GL/glew.h>
 #include <iostream>
 #include <glm/glm.hpp>
@@ -61,20 +60,22 @@ public:
 			return;
 		}
 		
+		// Setting the matrix to an identity matrix before continuing
+		Model = glm::mat4(1.0f);
+		
 		// Scaling the model
 		Model = glm::scale(Model, Scale);
 		
 		// Rotating the model
-		// Loop for ease of use
-		glm::vec3 Axis = glm::vec3(0.0f, 0.0f, 0.0f);
-		for(int i = 0; i < 3; i++) {
-			Axis[i] = 1.0f;
-			Model = glm::rotate(Model, glm::radians(Rotation[i]), Axis);
-			Axis[i] = 0.0f;
-		}
+		Model = glm::rotate(Model, glm::radians(Rotation.x), glm::vec3(1, 0, 0));
+		Model = glm::rotate(Model, glm::radians(Rotation.y), glm::vec3(0, 1, 0));
+		Model = glm::rotate(Model, glm::radians(Rotation.z), glm::vec3(0, 0, 1));
 		
 		// Translating the model
 		Model = glm::translate(Model, Position);
+		
+		// Setting the guard
+		HasModelMatrix = true;
 		
 	}
 	
@@ -112,6 +113,7 @@ private:
  * @todo Implement a system of static vs dynamic memory for GPU.
  * @todo Overload CreateVAO to support vectors and maybe even more data types.
  * @warning ShaderInstance must be created manually.
+ * @warning The renderer must be initialized before creating any VAOs.
  */ 
 class ObjectInstance {
 public:
@@ -146,13 +148,11 @@ public:
 		glBindVertexArray(VAO);
 		
 		// Creating vertex buffer object
-		unsigned int VBO;
 		glGenBuffers(1, &VBO);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, VerticesCount * sizeof(glm::vec3), VerticesPointer, GL_STATIC_DRAW);
 		
 		// Creating index buffer object
-		unsigned int IBO;
 		glGenBuffers(1, &IBO);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, IndicesCount * sizeof(unsigned int), IndicesPointer, GL_STATIC_DRAW);
@@ -212,6 +212,7 @@ public:
 		// Guard checking
 		if(!HasWorldData) {
 			std::cout << "Error: ObjectInstance: GetModelMatrix: WorldData is not present.\n";
+			return nullptr;
 		}
 		
 		// Returning
@@ -220,24 +221,51 @@ public:
 	}
 	
 	/**
+	 * @brief Function for checking whether or not the object is renderable.
+	 * @return Returns a bool representing whether or not the object is renderable.
+	 */
+	bool CanRender() {
+		// Checking guards
+		if(HasShader && HasVertexData) {
+			return true;
+			
+		} else {
+			return false;
+			
+		}
+		
+	}
+	
+	/**
+	 * @brief For rendering, gets the number of indices to be rendered.
+	 * @returns Returns the number of indices to be rendered.
+	 */
+	int GetIndicesCount() {
+		return IndicesCount;
+		
+	}
+	
+	/**
 	 * @brief Function which deletes all OpenGL data associated with the program.
 	 */
-	void Terminate() {
+	~ObjectInstance() {
 		// Guard checking
-		if(!HasVertexData || !HasShader) {
-			std::cout << "Error: ObjectInstance: Terminate(): VAO or Shader is not present.\n";
+		if(!HasVertexData) {
+			std::cout << "Error: ObjectInstance: Deconstructor: Buffers cannot be deleted because data is not present.\n";
 			return;
 		}
 		
 		// Deleting data
 		glDeleteVertexArrays(1, &VAO);
-		Shader->Terminate();
+		glDeleteBuffers(1, &VBO);
+		glDeleteBuffers(1, &IBO);
 		
 	}
 	
 private:
 	unsigned int VAO;			// Unsigned int storing the Vertex Array Object ID.
-	int IndicesCount;  			// Unsigned int storing the number of indices for the object.
+	unsigned int VBO, IBO;		// Buffers
+	int IndicesCount;  			// Int storing the number of indices for the object.
 	ShaderInstance* Shader;		// ShaderInstance pointer storing the address of the shader to be used on the object.
 	WorldDataInstance WorldData;	// Struct storing all of the data for the model matrix and the matrix itself.
 	bool HasShader = false;		// Bool guard determining whether or not the class has a shader.
