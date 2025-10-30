@@ -110,6 +110,7 @@ public:
 	
 	/**
 	 * @brief A function which finishes off rendering the frame by polling events and swapping buffers.
+	 * @note Effectively the same as RendererInstance.FinishFrame()
 	 */
 	void FinishFrame() {
 		// Returning if the window doesnt exist.

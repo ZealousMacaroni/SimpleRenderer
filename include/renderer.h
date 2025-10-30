@@ -4,6 +4,7 @@
  * @note Todos are general, not specific to this
  * @todo add more robust guards checking on function returns.
  * @todo Sort out the naming of StartFrame and EndFrame on the 
+ * @todo Figure out a way to make viewport/perspctive matrix dynamic
  */
  
 #pragma once
@@ -11,6 +12,8 @@
 #include "window.h"
 #include "object.h"
 #include "camera.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 /**
  * @class RendererInstance
@@ -40,7 +43,9 @@ public:
 		
 	}
 	/**
-	 * 
+	 * @brief Calls WindowInstance.FinishFrame().
+	 * @see See WindowInstance.FinishFrame for more info.
+	 * @todo Maybe find a better way to do this?
 	 */
 	void FinishFrame() {
 		Window->FinishFrame();
@@ -50,16 +55,34 @@ public:
 	 * @brief Renders a single object from a pointer, Object.
 	 */
 	void RenderObject(ObjectInstance* Object) {
+		// Guard checking
 		if(Object->CanRender()) {
+			// Using the VAO
 			Object->UseVAO();
-			Object->UseShader();
+			
+			// Getting the shader
+			ShaderInstance* Shader = Object->GetShader();
+			
+			// Using Shader
+			Shader->UseProgram();
+			
+			// Setting uniforms
+			Shader->UseModelMatrix       (glm::value_ptr(*Object->GetModelMatrix()));
+			Shader->UseViewMatrix        (glm::value_ptr(*Camera->GetViewMatrix()));
+			Shader->UsePerspectiveMatrix (glm::value_ptr( Perspective));
+			
+			
+			// Actually drawing
 			glDrawElements(GL_TRIANGLES, Object->GetIndicesCount(), GL_UNSIGNED_INT, 0);
+		
 		}
+	
 	}
 	
 	
 private:
 	WindowInstance* Window;		// Window
 	CameraInstance* Camera;		// Camera 
+	glm::mat4 Perspective = glm::mat4(1.0f);
 								
 };

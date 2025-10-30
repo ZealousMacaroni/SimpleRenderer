@@ -9,6 +9,7 @@
 #include <fstream>
 #include <GL/glew.h>
 #include <iostream>
+#include <glm/gtc/type_ptr.hpp>
 
 /**
  * @brief A simple function which reads a file.
@@ -16,7 +17,6 @@
  * @return Returns an std::string which contains the contents of the file.
  * @todo Maybe focus on making this have less of a memory footprint, especially for large files.
  */
- 
 std::string GetContentFromFile(std::string Path) {
 	// Creating file
 	std::ifstream File(Path);
@@ -42,6 +42,11 @@ std::string GetContentFromFile(std::string Path) {
 /**
  * @brief A simple class which handles shader creation and use w/uniforms. 
  * @todo Add a method which allows for checking to make sure that the data is in the shader.
+ * @todo Implement more uniforms besides just matrices
+ * @todo Make sure to implement a static vs dynamic thing for uniforms
+ * @todo Make the matrices apply to the uniforms system instead of their own thing
+ * @todo Add guards checking for using matrices
+ * @note Matrix names must be uModel, uView, and uPerspective
  */
 class ShaderInstance {
 public:
@@ -109,8 +114,38 @@ public:
 		glDeleteShader(VertexShader);
 		glDeleteShader(FragmentShader);
 		
+		// Getting uniform locations
+		Model = glGetUniformLocation(ID, "uModel");
+		View = glGetUniformLocation(ID, "uView");
+		Perspective = glGetUniformLocation(ID, "uPerspective");
+		
 		// Confirming that the program has been created
 		ProgramCreated = true;
+		
+	}
+	
+	/**
+	 * 
+	 */
+	void UseModelMatrix(const float* Matrix) {
+		glUniformMatrix4fv(Model, 1, GL_FALSE, Matrix);
+
+		
+	}
+	
+	/**
+	 * 
+	 */
+	void UseViewMatrix(const float* Matrix) {
+		 glUniformMatrix4fv(View, 1, GL_FALSE, Matrix);
+		 
+	}
+	 
+	/**
+	 * 
+	 */
+	void UsePerspectiveMatrix(const float* Matrix) {
+		glUniformMatrix4fv(Perspective, 1, GL_FALSE, Matrix);
 		
 	}
 	
@@ -143,4 +178,9 @@ public:
 private:
 	unsigned int ID;			// The OpenGL ID of the shader program.
 	bool ProgramCreated = false;// A bool representing whether or not the program has been created.
+	
+	int Model = -1;					// Location of model matrix uniform
+	int View = -1;					// Location of view matrix uniform
+	int Perspective = -1;			// Location of perspective matrix uniform
+	
 };

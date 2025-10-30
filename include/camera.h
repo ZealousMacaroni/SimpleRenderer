@@ -22,8 +22,8 @@ public:
 	 * @brief Gets the view matrix in column major order.
 	 * @return Returns the value pointer to the view matrix.
 	 */
-	float* GetViewMatrix() {
-		return glm::value_ptr(ViewMatrix);
+	glm::mat4* GetViewMatrix() {
+		return &ViewMatrix;
 		
 	}
 	 

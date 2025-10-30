@@ -48,6 +48,8 @@ public:
 		// Setting guard to true
 		HasVectorData = true;
 		
+		// Generating model matrix
+		GenerateMatrix();
 	}
 	
 	/**
@@ -60,19 +62,19 @@ public:
 			return;
 		}
 		
-		// Setting the matrix to an identity matrix before continuing
+		// Setting the model to identity to prevent undefined behavior
 		Model = glm::mat4(1.0f);
 		
-		// Scaling the model
-		Model = glm::scale(Model, Scale);
+		// Translating the model
+		Model = glm::translate(Model, Position);
 		
 		// Rotating the model
 		Model = glm::rotate(Model, glm::radians(Rotation.x), glm::vec3(1, 0, 0));
 		Model = glm::rotate(Model, glm::radians(Rotation.y), glm::vec3(0, 1, 0));
 		Model = glm::rotate(Model, glm::radians(Rotation.z), glm::vec3(0, 0, 1));
 		
-		// Translating the model
-		Model = glm::translate(Model, Position);
+		// Scaling the model
+		Model = glm::scale(Model, Scale);
 		
 		// Setting the guard
 		HasModelMatrix = true;
@@ -85,7 +87,7 @@ public:
 	 * @warning Modifying the data in the pointer can result in undefined behavior with GLM.
 	 * @warning If the model matrix has not been made, a nullptr is returned.
 	 */
-	const float* GetModelMatrix() {
+	glm::mat4* GetModelMatrix() {
 		// Checking guard
 		if(!HasModelMatrix) {
 			std::cout << "Error: WorldDataInstance: GetModelMatrix(): Model matrix has not been created.";
@@ -93,7 +95,7 @@ public:
 		}
 		
 		// Returning
-		return glm::value_ptr(Model);
+		return &Model;
 		
 	}
 	
@@ -114,6 +116,8 @@ private:
  * @todo Overload CreateVAO to support vectors and maybe even more data types.
  * @warning ShaderInstance must be created manually.
  * @warning The renderer must be initialized before creating any VAOs.
+ * @todo For CanRender, print an error message or smth but not every frame
+ * @todo Maybe add some identifiers so objects can be identified in errors
  */ 
 class ObjectInstance {
 public:
@@ -163,8 +167,8 @@ public:
 		
 		// Deleting buffers, not needed because of VAO
 		glBindVertexArray(0);
-		glDeleteBuffers(1, &VBO);
-		glDeleteBuffers(1, &IBO);
+		//glDeleteBuffers(1, &VBO);
+		//glDeleteBuffers(1, &IBO);
 		
 		// Setting the guard to true.
 		HasVertexData = true;
@@ -187,19 +191,12 @@ public:
 		
 	}
 	
-	/**
-	 * @brief Function which uses the Shader.
-	 * @warning If the Shader has not been initialized or created, errors will be printed.
+	/** 
+	 * @brief Gets a pointer to shader
+	 * @return Returns a pointer to the ShaderInstance.
 	 */
-	void UseShader() {
-		// Guard checking
-		if(!HasShader) {
-			std::cout << "Error: ObjectInstance: UseShader(): Shader is not present.\n";
-			return;
-		}
-		
-		// Using shader
-		Shader->UseProgram();
+	ShaderInstance* GetShader() {
+		return Shader;
 		
 	}
 	
@@ -208,7 +205,7 @@ public:
 	 * @return Returns a const float pointer to the matrix in column major order.
 	 * @warning Returns a nullptr if the class does not have any world data or vectors have not been created.
 	 */
-	const float* GetModelMatrix() {
+	glm::mat4* GetModelMatrix() {
 		// Guard checking
 		if(!HasWorldData) {
 			std::cout << "Error: ObjectInstance: GetModelMatrix: WorldData is not present.\n";
