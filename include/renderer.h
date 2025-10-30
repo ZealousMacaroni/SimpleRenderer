@@ -31,6 +31,12 @@ public:
 		glViewport(0, 0, 800, 800);
 		glEnable(GL_DEPTH_TEST);
 		
+		// Setting the window pointer
+		Window->SetUserPointer(Camera);
+		
+		// Setting cursor pos callback
+		_Window->SetCursorPositionCallback(MouseCallback);
+		
 	}
 	
 	/**
@@ -40,6 +46,10 @@ public:
 		// Color stuffs
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		// Camera/view
+		View = Camera->GetViewMatrix();
+		Camera->ProcessKeyboardInput(Window->GetWindowPointer());
 		
 	}
 	/**
@@ -68,8 +78,8 @@ public:
 			
 			// Setting uniforms
 			Shader->UseModelMatrix       (glm::value_ptr(*Object->GetModelMatrix()));
-			Shader->UseViewMatrix        (glm::value_ptr(*Camera->GetViewMatrix()));
-			Shader->UsePerspectiveMatrix (glm::value_ptr( Perspective));
+			Shader->UseViewMatrix        (glm::value_ptr(View));
+			Shader->UsePerspectiveMatrix (glm::value_ptr(Perspective));
 			
 			
 			// Actually drawing
@@ -83,6 +93,7 @@ public:
 private:
 	WindowInstance* Window;		// Window
 	CameraInstance* Camera;		// Camera 
-	glm::mat4 Perspective = glm::mat4(1.0f);
+	glm::mat4 Perspective = glm::perspective(glm::radians(45.0f), 800.0f / 800.0f, 0.1f, 100.0f);
+	glm::mat4 View;
 								
 };

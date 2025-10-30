@@ -55,6 +55,9 @@ public:
 		// Creating window
 		Window = glfwCreateWindow(Data.Width, Data.Height, Data.Title, NULL, NULL);
 		
+		// Disabling cursor
+		glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  
+		
 		// Checking for failure
 		if(!Window) {
 			std::cout << "Error: WindowInstance: Constructor: Window creation failed.\n";
@@ -125,6 +128,17 @@ public:
 		
 	}
 	
+	/**
+	 * 
+	 */
+	void SetUserPointer(void* Data) {
+		glfwSetWindowUserPointer(Window, Data);
+		
+	}
+	
+	GLFWwindow* GetWindowPointer() {
+		return Window;
+	}
 	/**
 	 * @brief A function which terminates GLFW.
 	 */
