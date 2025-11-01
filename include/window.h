@@ -129,15 +129,33 @@ public:
 	}
 	
 	/**
-	 * @brief Returns the pointer to the window used for glfw.
-	 * @return
+	 * @brief Function to get the GLFW window pointer.
+	 * @return Returns GLFWwindow pointer, which is the window pointer. Like bruh this is self explanatory do we need ts.
 	 */
 	GLFWwindow* GetWindowPointer() {
 		return Window;
+		
 	}
 	
 	/**
-	 * @brief A function which terminates GLFW.
+	 * @brief Function to get the width of the window.
+	 * @return Returns an int which is the width of the window.
+	 */
+	int GetWindowWidth() {
+		return Data.Width;
+	}
+	
+	/**
+	 * @brief Function to get the height of the window.
+	 * @return Returns an int which is the height of the window.
+	 */
+	int GetWindowHeight() {
+		return Data.Height;
+	}
+	
+	/**
+	 * @brief A function which terminates destorys the window.
+	 * @note If there are multiple WindowInstances, then GLFW will not be terminated until the last window is terminated.
 	 */
 	~WindowInstance() {
 		// Checking if the window exists before doing stuff
@@ -150,6 +168,9 @@ public:
 				glfwTerminate();
 				
 			}
+			
+			// Subtracting from WindowCount.
+			WindowCount -= 1;
 		
 		}
 		
