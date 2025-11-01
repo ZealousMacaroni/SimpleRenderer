@@ -149,8 +149,17 @@ public:
 	/** 
 	 * @brief Gets a pointer to shader
 	 * @return Returns a pointer to the ShaderInstance.
+	 * @warning Returns a nullptr if shader is not present.
 	 */
 	ShaderInstance* GetShader() {
+		// Guard checking
+		if(!HasShader) {
+			std::cout << "Error: ObjectInstance: GetShader(): Shader is not present.\n";
+			return nullptr;
+			
+		}
+		
+		// Actually returning
 		return Shader;
 		
 	}
@@ -158,17 +167,18 @@ public:
 	/**
 	 * @brief Function which gets the model matrix.
 	 * @return Returns a const float pointer to the matrix in column major order.
-	 * @warning Returns a nullptr if the class does not have any world data or vectors have not been created.
+	 * @warning Returns an identity matrix if the model matrix has not been created.
 	 */
-	glm::mat4* GetModelMatrix() {
+	const float* GetModelMatrix() {
 		// Guard checking
 		if(!HasModelMatrix) {
-			std::cout << "Error: ObjectInstance: GetModelMatrix: Model matrix is not present.\n";
-			return nullptr;
+			std::cout << "Error: ObjectInstance: GetModelMatrix(): Model matrix is not present.\n";
+			glm::mat4 Identity = glm::mat4(1.0f);
+			return glm::value_ptr(Identity);
 		}
 		
 		// Returning
-		return &Model;
+		return glm::value_ptr(Model);
 		
 	}
 	
@@ -178,10 +188,11 @@ public:
 	 */
 	bool CanRender() {
 		// Checking guards
-		if(HasShader && HasVertexData) {
+		if(HasShader && HasVertexData && HasWorldData) {
 			return true;
 			
 		} else {
+			std::cout << "Error: ObjectInstance: CanRender(): Cannot render because object does not have either shader, vertex data, or world data.\n";
 			return false;
 			
 		}
@@ -218,11 +229,14 @@ private:
 	unsigned int VAO;			// Unsigned int storing the Vertex Array Object ID.
 	unsigned int VBO, IBO;		// Buffers
 	int IndicesCount;  			// Int storing the number of indices for the object.
+	
 	ShaderInstance* Shader;		// ShaderInstance pointer storing the address of the shader to be used on the object.
+	
 	bool HasShader = false;		// Bool guard determining whether or not the class has a shader.
 	bool HasVertexData = false;	// Bool guard determining whether or not the VAO and IndicesCount have been created/initialized.
 	bool HasWorldData = false;	// Bool guard determining whether or not vector data is present.
 	bool HasModelMatrix = false;// Bool guard determining whether or not the model matrix has been made.
+	
 	glm::mat4 Model;			// The actual model matrix
 	glm::vec3 Scale;			// Object scale
 	glm::vec3 Rotation;			// Object rotation

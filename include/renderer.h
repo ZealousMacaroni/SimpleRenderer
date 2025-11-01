@@ -87,7 +87,7 @@ public:
 			Shader->UseProgram();
 			
 			// Setting uniforms
-			Shader->UseModelMatrix       (glm::value_ptr(*Object->GetModelMatrix()));
+			Shader->UseModelMatrix       (Object->GetModelMatrix());
 			Shader->UseViewMatrix        (View);
 			Shader->UsePerspectiveMatrix (glm::value_ptr(Perspective));
 			
