@@ -21,89 +21,154 @@
 class CameraInstance {
 public:
 	CameraInstance() {}			// Default constructor
-								
+	
 	/**
-	 * @brief Gets the view matrix in column major order.
-	 * @return Returns the value pointer to the view matrix.
+	 * @brief Constructor for the camera.
+	 * @param StartPos glm::vec3 representing the starting position of the camera.
+	 * @param StartDir glm::vec3 representing the starting direction of the camera.
+	 * @param Speed float representing a scalar value which is the speed of the directional movement.
+	 * @param Sense float representing a scalar value which is the speed of the camera by mouse movement.
 	 */
-	glm::mat4 GetViewMatrix() {
+	CameraInstance(glm::vec3 StartPos, glm::vec3 StartDir, float Speed, float Sense) : Position(StartPos), Front(StartDir), MovementSpeed(Speed), MouseSense(Sense) {}
+							
+	/**
+	 * @brief Creates and returns the view matrix in column major order.
+	 * @return Returns the value pointer to the view matrix. 
+	 */
+	const float* GetViewMatrix() {
+		// Creating the view matrix
 		ViewMatrix = glm::lookAt(Position, Position + Front, Up);
-		return ViewMatrix;
+		
+		// Returning the value of the view matrix
+		return glm::value_ptr(ViewMatrix);
 		
 	}
 	
 	/**
-	 * 
+	 * @brief Updates the camera based off of current mouse position.
+	 * @param XPos float representing the Y position of the cursor.
+	 * @param XPos float representing the Y position of the cursor.
 	 */
-	void ProcessMouseMovement(float _XPos, float _YPos) {
-		float _XOffset = LastX - _XPos;
-		float _YOffset = _YPos - LastY;
-		LastX = _XPos;
-		LastY = _YPos;
-		_XOffset *= SENSITIVITY;
-		_YOffset *= SENSITIVITY;
-		Yaw += _XOffset;
-		Pitch += _YOffset;
-		if(Pitch > 89.0f)
+	void ProcessMouseMovement(float XPos, float YPos) {
+		// Checking if first mouse, correcting
+		if(FirstMouse) {
+			// Setting positions
+			LastX = XPos;
+			LastY = YPos;
+			
+			// Setting to false so it doesnt run again
+			FirstMouse = false;
+			
+		}
+		
+		// Getting the offsets of the cursor from the last position
+		// Note: Order is arbitrary, since it only affects the movement direction, which is also arbitrary
+		float XOffset = LastX - XPos;
+		float YOffset = YPos - LastY;
+		
+		// Setting the last x and y
+		LastX = XPos;
+		LastY = YPos;
+		
+		// Scaling the offset to sensitivity
+		XOffset *= MouseSense;
+		YOffset *= MouseSense;
+		
+		// Adding the offset to the yaw and pitch, again offset is arbitrary. sensitivity is what matters
+		Yaw += XOffset;
+		Pitch += YOffset;
+		
+		// Pitch constrains, prevents weird behavior when the camera is
+		if(Pitch > 89.0f) {
 			Pitch =  89.0f;
-		if(Pitch < -89.0f)
+			
+		}
+		
+		if(Pitch < -89.0f) {
 			Pitch = -89.0f;
-		UpdateCameraVectors();
+			
+		}
+		
+		// Okay, doozy here. I am not going to try and explain it, see learnopengl.com transformations and camera section to understand it. Basically complex ge
+		Front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+		Front.y = sin(glm::radians(Pitch));
+		Front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+		
+		// After front is calculated, normalize to 1.
+		Front = glm::normalize(Front);
+		
+		// Calculate the right vector, which is perpendicular to both Front and WorldUp
+		glm::vec3 Right = glm::normalize(glm::cross(Front, WorldUp));
+		
+		// Calculate the Up vector(not WorldUp), which is perpendicular to both Front and Right
+		Up = glm::normalize(glm::cross(Front, Right));
 
 	}
 	 
 	/**
-	 * 
+	 * @brief Changes variables needed to create view matrix based on input.
+	 * @param Window GLFWwindow pointer of the window that the input is gotten from.
+	 * @todo Get rid of redundant calculations
+	 * @todo Add this to an input system
 	 */
-	void ProcessKeyboardInput(GLFWwindow* _Window) {
-		if (glfwGetKey(_Window, GLFW_KEY_W) == GLFW_PRESS)
-			Position += SPEED * Front;
-		if (glfwGetKey(_Window, GLFW_KEY_S) == GLFW_PRESS)
-			Position -= SPEED * Front;
-		if (glfwGetKey(_Window, GLFW_KEY_A) == GLFW_PRESS)
-			Position -= glm::normalize(glm::cross(Front, Up)) * SPEED;
-		if (glfwGetKey(_Window, GLFW_KEY_D) == GLFW_PRESS)
-			Position += glm::normalize(glm::cross(Front, Up)) * SPEED;
-		if (glfwGetKey(_Window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-			Position += SPEED * WorldUp;
-		if (glfwGetKey(_Window, GLFW_KEY_SPACE) == GLFW_PRESS)
-			Position -= SPEED * WorldUp;
-		if (glfwGetKey(_Window, GLFW_KEY_J) == GLFW_PRESS)
-			SPEED = 0.05f;
-		if (glfwGetKey(_Window, GLFW_KEY_H) == GLFW_PRESS)
-			SPEED = 20.0f;
+	void ProcessKeyboardInput(GLFWwindow* Window) {
+		// Moving forward
+		if (glfwGetKey(Window, GLFW_KEY_W) == GLFW_PRESS) { 
+			Position += MovementSpeed * Front;
+		
+		}
+		
+		// Moving backwards
+		if (glfwGetKey(Window, GLFW_KEY_S) == GLFW_PRESS) {
+			Position -= MovementSpeed * Front;
+			
+		}
+		
+		// Moving left
+		if (glfwGetKey(Window, GLFW_KEY_A) == GLFW_PRESS) {
+			Position -= glm::normalize(glm::cross(Front, Up)) * MovementSpeed;
+			
+		}
+		
+		// Moving right
+		if (glfwGetKey(Window, GLFW_KEY_D) == GLFW_PRESS) {
+			Position += glm::normalize(glm::cross(Front, Up)) * MovementSpeed;
+			
+		}
+		
 	}
 	 
 private:
-	glm::mat4 ViewMatrix = glm::mat4(1.0f);
+	glm::mat4 ViewMatrix = glm::mat4(1.0f);		// The view matrix used for rendering, initialized to identity.
+										
+	float MovementSpeed;		// The speed at which the camera moves, arbitrary.
+	float MouseSense;			// The sensitivity of the camera looking around, arbitrary
+								
+	float Yaw = 0.0f;			// The starting yaw angle, set to 0
+	float Pitch = 0.0f;			// The starting pitch, set to 0
+	float LastX = 400.0f;		// The starting position of the cursor, x
+	float LastY = 400.0f;		// The starting position of the cursor, y
 	
-	float SPEED = 0.05f;
-	const float SENSITIVITY = 0.1f;
+	glm::vec3 Position;			// The position of the camera at the start.
+	glm::vec3 Front;			// The starting direction the camera faces
 	
-	float Yaw = -90.0f;
-	float Pitch = 0.0f;
-	float LastX = 400.0f;
-	float LastY = 400.0f;
+	const glm::vec3 WorldUp = glm::vec3(0.0f, 1.0f, 0.0f);		// The constant direction of +y
 	
-	glm::vec3 Position = glm::vec3(0.0f, 0.0f, 3.0f);
-	glm::vec3 Front = glm::vec3(0.0f, 0.0f, -1.0f);
-	glm::vec3 WorldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	glm::vec3 Up;				// The vector to be calculated which represents the up direction of the camera.
 	
-	glm::vec3 Up;
-	glm::vec3 Right;
-	
-	void UpdateCameraVectors() {
-		Front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-		Front.y = sin(glm::radians(Pitch));
-		Front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-		Front = glm::normalize(Front);
-		Right = glm::normalize(glm::cross(Front, WorldUp));
-		Up = glm::normalize(glm::cross(Front, Right));
-	}
+	bool FirstMouse = true;		// Bool so the camera doesnt jump around immediately.
 	
 };
 
-void MouseCallback(GLFWwindow* _Window, double _XPos, double _YPos) {
-	CameraInstance* Cam = (CameraInstance*)glfwGetWindowUserPointer(_Window);
-	Cam->ProcessMouseMovement(_XPos, _YPos);
+/**
+ * @brief Callback for when the mouse position changes.
+ * @warning Do not call, will cause weird behavior of the camera.
+ * @todo Move this somewhere else. Maybe? idk yet.
+ * @param Window GLFW window pointer.
+ * @param XPos X Position of the mouse.
+ * @param YPos Y Position of the mouse.
+ */
+void MouseCallback(GLFWwindow* Window, double XPos, double YPos) {
+	CameraInstance* Cam = (CameraInstance*)glfwGetWindowUserPointer(Window);
+	Cam->ProcessMouseMovement(XPos, YPos);
 }
