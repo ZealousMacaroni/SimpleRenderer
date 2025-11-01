@@ -7,8 +7,10 @@
 
 #include <string>
 #include <fstream>
-#include <GL/glew.h>
 #include <iostream>
+
+#include <GL/glew.h>
+
 #include <glm/gtc/type_ptr.hpp>
 
 /**

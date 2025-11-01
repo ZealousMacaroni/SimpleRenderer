@@ -3,15 +3,24 @@
  * @brief Contains the main renderer.
  * @note Todos are general, not specific to this
  * @todo add more robust guards checking on function returns.
+ * @todo For guard checking/flags, see if there are any built in methods of the libraries which I can use.
+ * @todo Go through and rewrite docs
+ * @todo Instead of having guards, remove default constructors. Maybe
+ * @todo Add object color
  */
  
 #pragma once
 
-#include "window.h"
-#include "object.h"
-#include "camera.h"
+#include <SimpleRenderer/camera.h>
+#include <SimpleRenderer/object.h>
+#include <SimpleRenderer/shader.h>
+#include <SimpleRenderer/window.h>
+
+#include <GL/glew.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 /**
  * @class RendererInstance
