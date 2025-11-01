@@ -135,6 +135,23 @@ public:
 		}
 		
 	}
+	
+	/**
+	 * @brief Function which sets the camera movement speed.
+	 * @param Speed The speed of the camera to be set.
+	 */
+	void SetCameraSpeed(float Speed) {
+		MovementSpeed = Speed;
+		
+	}
+	
+	/**
+	 * @brief Function to set camera sensitivity.
+	 * @param Sense The sensitivity of the camera to be set
+	 */
+	void SetCameraSensitivity(float Sense) {
+		MouseSense = Sense;
+	}
 	 
 private:
 	glm::mat4 ViewMatrix = glm::mat4(1.0f);		// The view matrix used for rendering, initialized to identity.
