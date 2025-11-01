@@ -13,43 +13,51 @@
 #include <glm/gtc/type_ptr.hpp>
 
 /**
- * @class WorldDataInstance
- * @brief Stores data such as position and rotation for positioning within the world.
- */
-class WorldDataInstance {
+ * @class ObjectInstance
+ * @brief Stores all data needed for rendering.
+ * @todo Implement a system of static vs dynamic memory for GPU.
+ * @todo Overload CreateVAO to support vectors and maybe even more data types.
+ * @warning ShaderInstance must be created manually.
+ * @warning The renderer must be initialized before creating any VAOs.
+ * @todo For CanRender, print an error message or smth but not every frame
+ * @todo Maybe add some identifiers so objects can be identified in errors
+ */ 
+class ObjectInstance {
 public:
-	WorldDataInstance() {} 		// Default constructor
+	ObjectInstance() {}			// Default constructor
 	
 	/**
-	 * @brief Constructor which initializes data.
-	 * @param _Scale vec3 representing the size of the object for each axis.
-	 * @param _Rotation vec3 representing the rotation of the object for each axis, in degrees.
-	 * @param _Position vec3 representing the position of the object in the world.
-	 * @note The function simply calls SetData.
-	 * @see SetData()
+	 * @brief Constructor that loads the shader and world data.
+	 * @param _Shader The pointer to the shader which is inspected to be constructed to be used to render the object.
+	 * @param _WorldData The data of the particular object that is used to position it in the world.
 	 */
-	WorldDataInstance(glm::vec3 _Scale, glm::vec3 _Rotation, glm::vec3 _Position) {
-		SetData(_Scale, _Rotation, _Position);
+	ObjectInstance(ShaderInstance* _Shader, glm::vec3 _Scale, glm::vec3 _Rotation, glm::vec3 _Position) : Shader(_Shader) {
+		// Setting guards to true
+		HasShader = true;
+		
+		// Setting the vector data
+		SetWorldData(_Scale, _Rotation, _Position);
 		
 	}
-	 
+	
 	/**
-	 * @brief Method which initializes data.
+	 * @brief Method which initializes world data.
 	 * @param _Scale vec3 representing the size of the object for each axis.
 	 * @param _Rotation vec3 representing the rotation of the object for each axis, in degrees.
 	 * @param _Position vec3 representing the position of the object in the world.
 	 */
-	void SetData(glm::vec3 _Scale, glm::vec3 _Rotation, glm::vec3 _Position) {
+	void SetWorldData(glm::vec3 _Scale, glm::vec3 _Rotation, glm::vec3 _Position) {
 		// Setting data
 		Scale = _Scale;
 		Rotation = _Rotation;
 		Position = _Position;
 		
 		// Setting guard to true
-		HasVectorData = true;
+		HasWorldData = true;
 		
 		// Generating model matrix
 		GenerateMatrix();
+		
 	}
 	
 	/**
@@ -57,8 +65,8 @@ public:
 	 */
 	void GenerateMatrix() {
 		// Checking if vector data is present
-		if(!HasVectorData) {
-			std::cout << "Error: WorldDataInstance: GenerateMatrix(): No vector data present.\n";
+		if(!HasWorldData) {
+			std::cout << "Error: ObjectInstance: GenerateMatrix(): No vector data present.\n";
 			return;
 		}
 		
@@ -82,66 +90,13 @@ public:
 	}
 	
 	/**
-	 * @brief Function which gets the model matrix.
-	 * @return Returns a const float pointer to the floats of the matrix. Column major order.
-	 * @warning Modifying the data in the pointer can result in undefined behavior with GLM.
-	 * @warning If the model matrix has not been made, a nullptr is returned.
-	 */
-	glm::mat4* GetModelMatrix() {
-		// Checking guard
-		if(!HasModelMatrix) {
-			std::cout << "Error: WorldDataInstance: GetModelMatrix(): Model matrix has not been created.";
-			return nullptr;
-		}
-		
-		// Returning
-		return &Model;
-		
-	}
-	
-private:
-	glm::vec3 Scale;			// vec3 representing the size of the object for each axis.
-	glm::vec3 Rotation;			// vec3 representing the rotation of the object for each axis, in degrees.
-	glm::vec3 Position;			// vec3 representing the position of the object in the world.
-	glm::mat4 Model = glm::mat4(1.0f);	// Model Matrix
-	bool HasVectorData = false;	// Bool guard representing whether or not the vectors have been initialized yet.
-	bool HasModelMatrix = false;// Bool guard representing whether or not the model matrix has been made.
-	
-};
-
-/**
- * @class ObjectInstance
- * @brief Stores all data needed for rendering.
- * @todo Implement a system of static vs dynamic memory for GPU.
- * @todo Overload CreateVAO to support vectors and maybe even more data types.
- * @warning ShaderInstance must be created manually.
- * @warning The renderer must be initialized before creating any VAOs.
- * @todo For CanRender, print an error message or smth but not every frame
- * @todo Maybe add some identifiers so objects can be identified in errors
- */ 
-class ObjectInstance {
-public:
-	ObjectInstance() {}			// Default constructor
-	
-	/**
-	 * @brief Constructor that loads the shader and world data.
-	 * @param _Shader The pointer to the shader which is inspected to be constructed to be used to render the object.
-	 * @param _WorldData The data of the particular object that is used to position it in the world.
-	 */
-	ObjectInstance(ShaderInstance* _Shader, WorldDataInstance _WorldData) : WorldData(_WorldData), Shader(_Shader) {
-		// Setting guards to true
-		HasShader = true;
-		HasWorldData = true;
-	
-	}
-	
-	/**
 	 * @brief Method that creates the VAO and initiates IndicesCount through regular arrays.
 	 * @param VerticesPointer Pointer to the vertices. Expects vertices to be composed of glm::vec3s.
 	 * @param VerticesCount Number of vertices. 
 	 * @param IndicesPointer Pointer to the indices. Expects indices to be composed of unsigned ints.
 	 * @param _IndicesCount Number of indices.
 	 * @warning Only supports data in contiguous blocks of memory.
+	 * @warning Please dont put a random number in, it will cause like crazy undefined behavior.
 	 */
 	void CreateVAO(glm::vec3* VerticesPointer, int VerticesCount, unsigned int* IndicesPointer, int _IndicesCount) {
 		// Initializing IndicesCount
@@ -207,13 +162,13 @@ public:
 	 */
 	glm::mat4* GetModelMatrix() {
 		// Guard checking
-		if(!HasWorldData) {
-			std::cout << "Error: ObjectInstance: GetModelMatrix: WorldData is not present.\n";
+		if(!HasModelMatrix) {
+			std::cout << "Error: ObjectInstance: GetModelMatrix: Model matrix is not present.\n";
 			return nullptr;
 		}
 		
 		// Returning
-		return WorldData.GetModelMatrix();
+		return &Model;
 		
 	}
 	
@@ -264,9 +219,13 @@ private:
 	unsigned int VBO, IBO;		// Buffers
 	int IndicesCount;  			// Int storing the number of indices for the object.
 	ShaderInstance* Shader;		// ShaderInstance pointer storing the address of the shader to be used on the object.
-	WorldDataInstance WorldData;	// Struct storing all of the data for the model matrix and the matrix itself.
 	bool HasShader = false;		// Bool guard determining whether or not the class has a shader.
-	bool HasWorldData = false;	// Bool guard determining whether or not the class has WorldData.
 	bool HasVertexData = false;	// Bool guard determining whether or not the VAO and IndicesCount have been created/initialized.
+	bool HasWorldData = false;	// Bool guard determining whether or not vector data is present.
+	bool HasModelMatrix = false;// Bool guard determining whether or not the model matrix has been made.
+	glm::mat4 Model;			// The actual model matrix
+	glm::vec3 Scale;			// Object scale
+	glm::vec3 Rotation;			// Object rotation
+	glm::vec3 Position;			// Object position
 	
 };
