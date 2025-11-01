@@ -27,7 +27,9 @@ public:
 	 * @param Speed float representing a scalar value which is the speed of the directional movement.
 	 * @param Sense float representing a scalar value which is the speed of the camera by mouse movement.
 	 */
-	CameraInstance(glm::vec3 StartPos, glm::vec3 StartDir, float Speed, float Sense, float _FOV) : Position(StartPos), Front(StartDir), MovementSpeed(Speed), MouseSense(Sense), FOV(_FOV) {}
+	CameraInstance(glm::vec3 StartPos, glm::vec3 StartDir, float Speed, float Sense, float _FOV) : Position(StartPos), Front(StartDir), MovementSpeed(Speed), MouseSense(Sense), FOV(_FOV) {
+		Up = WorldUp;
+	}
 							
 	/**
 	 * @brief Creates and returns the view matrix in column major order.
