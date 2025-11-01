@@ -32,10 +32,10 @@ public:
 		glEnable(GL_DEPTH_TEST);
 		
 		// Setting the window pointer
-		Window->SetUserPointer(Camera);
+		glfwSetWindowUserPointer(Window->GetWindowPointer(), Camera);
 		
 		// Setting cursor pos callback
-		_Window->SetCursorPositionCallback(MouseCallback);
+		Window->SetCursorPositionCallback(MouseCallback);
 		
 	}
 	
@@ -62,7 +62,8 @@ public:
 	}
 	
 	/**
-	 * @brief Renders a single object from a pointer, Object.
+	 * @brief Renders a single object from a pointer.
+	 * @param Object ObjectInstance pointer to be renderered.
 	 */
 	void RenderObject(ObjectInstance* Object) {
 		// Guard checking
@@ -78,7 +79,7 @@ public:
 			
 			// Setting uniforms
 			Shader->UseModelMatrix       (glm::value_ptr(*Object->GetModelMatrix()));
-			Shader->UseViewMatrix        (glm::value_ptr(View));
+			Shader->UseViewMatrix        (View);
 			Shader->UsePerspectiveMatrix (glm::value_ptr(Perspective));
 			
 			
@@ -94,6 +95,6 @@ private:
 	WindowInstance* Window;		// Window
 	CameraInstance* Camera;		// Camera 
 	glm::mat4 Perspective = glm::perspective(glm::radians(45.0f), 800.0f / 800.0f, 0.1f, 100.0f);
-	glm::mat4 View;
+	const float* View;
 								
 };
