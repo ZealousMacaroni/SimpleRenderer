@@ -50,21 +50,10 @@ public:
 	 * @param XPos float representing the Y position of the cursor.
 	 */
 	void ProcessMouseMovement(float XPos, float YPos) {
-		// Checking if first mouse, correcting
-		if(FirstMouse) {
-			// Setting positions
-			LastX = XPos;
-			LastY = YPos;
-			
-			// Setting to false so it doesnt run again
-			FirstMouse = false;
-			
-		}
-		
 		// Getting the offsets of the cursor from the last position
 		// Note: Order is arbitrary, since it only affects the movement direction, which is also arbitrary
-		float XOffset = LastX - XPos;
-		float YOffset = YPos - LastY;
+		float XOffset = XPos - LastX;
+		float YOffset = LastY - YPos;
 		
 		// Setting the last x and y
 		LastX = XPos;
@@ -101,7 +90,7 @@ public:
 		glm::vec3 Right = glm::normalize(glm::cross(Front, WorldUp));
 		
 		// Calculate the Up vector(not WorldUp), which is perpendicular to both Front and Right
-		Up = glm::normalize(glm::cross(Front, Right));
+		Up = glm::normalize(glm::cross(Right, Front));
 
 	}
 	 
@@ -190,9 +179,7 @@ private:
 	const glm::vec3 WorldUp = glm::vec3(0.0f, 1.0f, 0.0f);		// The constant direction of +y
 	
 	glm::vec3 Up;				// The vector to be calculated which represents the up direction of the camera.
-	
-	bool FirstMouse = true;		// Bool so the camera doesnt jump around immediately.
-	
+		
 	float FOV;					// The FOV of the camera.
 	
 };
