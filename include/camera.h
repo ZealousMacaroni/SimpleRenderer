@@ -27,7 +27,7 @@ public:
 	 * @param Speed float representing a scalar value which is the speed of the directional movement.
 	 * @param Sense float representing a scalar value which is the speed of the camera by mouse movement.
 	 */
-	CameraInstance(glm::vec3 StartPos, glm::vec3 StartDir, float Speed, float Sense) : Position(StartPos), Front(StartDir), MovementSpeed(Speed), MouseSense(Sense) {}
+	CameraInstance(glm::vec3 StartPos, glm::vec3 StartDir, float Speed, float Sense, float _FOV) : Position(StartPos), Front(StartDir), MovementSpeed(Speed), MouseSense(Sense), FOV(_FOV) {}
 							
 	/**
 	 * @brief Creates and returns the view matrix in column major order.
@@ -151,6 +151,24 @@ public:
 	 */
 	void SetCameraSensitivity(float Sense) {
 		MouseSense = Sense;
+		
+	}
+	
+	/**
+	 * @brief Function to get camera FOV.
+	 * @return Returns the camera FOV.
+	 */
+	float GetFOV() {
+		return FOV;
+	}
+	
+	/**
+	 * @brief Function to set FOV.
+	 * @param _FOV Camera FOV to be set.
+	 */
+	void SetFOV(float _FOV) {
+		FOV = _FOV;
+		
 	}
 	 
 private:
@@ -172,6 +190,8 @@ private:
 	glm::vec3 Up;				// The vector to be calculated which represents the up direction of the camera.
 	
 	bool FirstMouse = true;		// Bool so the camera doesnt jump around immediately.
+	
+	float FOV;					// The FOV of the camera.
 	
 };
 
