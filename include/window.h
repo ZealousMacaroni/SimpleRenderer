@@ -129,16 +129,13 @@ public:
 	}
 	
 	/**
-	 * 
+	 * @brief Returns the pointer to the window used for glfw.
+	 * @return
 	 */
-	void SetUserPointer(void* Data) {
-		glfwSetWindowUserPointer(Window, Data);
-		
-	}
-	
 	GLFWwindow* GetWindowPointer() {
 		return Window;
 	}
+	
 	/**
 	 * @brief A function which terminates GLFW.
 	 */
