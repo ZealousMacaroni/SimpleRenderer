@@ -166,7 +166,7 @@ public:
 	~ShaderInstance() {
 		// Guard checking
 		if(!ProgramCreated) {
-			std::cout << "Error: ShaderInstance: Terminate(): Program has not been created.\n";
+			std::cout << "Error: ShaderInstance: Deconstructor: Program has not been created.\n";
 			return;
 		}
 		
