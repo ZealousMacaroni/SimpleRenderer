@@ -20,8 +20,6 @@
  */
 class CameraInstance {
 public:
-	CameraInstance() {}			// Default constructor
-	
 	/**
 	 * @brief Constructor for the camera.
 	 * @param StartPos glm::vec3 representing the starting position of the camera.
