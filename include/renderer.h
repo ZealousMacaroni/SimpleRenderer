@@ -3,8 +3,6 @@
  * @brief Contains the main renderer.
  * @note Todos are general, not specific to this
  * @todo add more robust guards checking on function returns.
- * @todo Sort out the naming of StartFrame and EndFrame on the 
- * @todo Figure out a way to make viewport/perspctive matrix dynamic
  */
  
 #pragma once
@@ -18,17 +16,25 @@
 /**
  * @class RendererInstance
  * @brief A class which contains all code neccessary to render an ObjectInstance.
+ * @todo Add functions to set render distance.
  */
 class RendererInstance {
 public:
-	RendererInstance() {}		// Default constructor
-	
 	/**
-	 * 
+	 * @brief Initializes the renderer. 
+	 * @param _Window Pointer to the window instance to be rendered in.
+	 * @param _Camera Pointer to the camera to be used for rendering.
+	 * @param _RenderRangeMin The minimum distance from the camera position objects have to be for rendering.
+	 * @param _RenderRangeMax The maximum distance from the camera position objects can be to be rendered.
 	 */
-	RendererInstance(WindowInstance* _Window, CameraInstance* _Camera) : Window(_Window), Camera(_Camera) {
+	RendererInstance(WindowInstance* _Window, CameraInstance* _Camera, float _RenderRangeMin, float _RenderRangeMax) : 
+		Window(_Window), 
+		Camera(_Camera),
+		RenderRangeMin(_RenderRangeMin),
+		RenderRangeMax(_RenderRangeMax) 
+	{
 		// Doing starting functions
-		glViewport(0, 0, 800, 800);
+		glViewport(0, 0, Window->GetWindowWidth(), Window->GetWindowHeight());
 		glEnable(GL_DEPTH_TEST);
 		
 		// Setting the window pointer
@@ -37,10 +43,13 @@ public:
 		// Setting cursor pos callback
 		Window->SetCursorPositionCallback(MouseCallback);
 		
+		// Setting the perspective matrix
+		Perspective = glm::perspective(glm::radians(Camera->GetFOV()), (float)Window->GetWindowWidth() / (float)Window->GetWindowHeight(), RenderRangeMin, RenderRangeMax);
+		
 	}
 	
 	/**
-	 * 
+	 * @brief Function which initializes the renderer to begin drawing the frame.
 	 */
 	void StartFrame() {
 		// Color stuffs
@@ -94,7 +103,12 @@ public:
 private:
 	WindowInstance* Window;		// Window
 	CameraInstance* Camera;		// Camera 
-	glm::mat4 Perspective = glm::perspective(glm::radians(45.0f), 800.0f / 800.0f, 0.1f, 100.0f);
-	const float* View;
+	
+	glm::mat4 Perspective;		// The perspective matrix
+	const float* View;			// The view matrix value pointer
+	
+	float FOV;					// The FOV of the camera.
+	float RenderRangeMin;		// The minimum range of objects from the camera to be rendered.
+	float RenderRangeMax;		// The maximum range of objects from the camera to ve rendered.
 								
 };
